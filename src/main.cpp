@@ -36,7 +36,7 @@ int main()
         return 1;
 
     SDL_Window* window = SDL_CreateWindow(
-        "SAMIX GAMES",
+        "SAMIX_DZPS4",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         W, H, 0
