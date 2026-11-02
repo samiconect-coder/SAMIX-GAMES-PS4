@@ -1,3 +1,4 @@
+
 name: SAMIX GAMES PS4 Build
 
 on:
@@ -10,9 +11,6 @@ jobs:
   build:
     runs-on: ubuntu-24.04
 
-    env:
-      OO_PS4_TOOLCHAIN: ${{ runner.temp }}/OpenOrbisSDK
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -24,6 +22,7 @@ jobs:
 
       - name: Download OpenOrbis Toolchain
         run: |
+          export OO_PS4_TOOLCHAIN="$RUNNER_TEMP/OpenOrbisSDK"
           mkdir -p "$OO_PS4_TOOLCHAIN"
           curl -L \
             https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/toolchain-llvm-18.tar.gz \
@@ -33,7 +32,9 @@ jobs:
             bin/data bin/linux include lib scripts LICENSE link.x
 
       - name: Build SAMIX GAMES
-        run: make
+        run: |
+          export OO_PS4_TOOLCHAIN="$RUNNER_TEMP/OpenOrbisSDK"
+          make
 
       - name: Upload EBOOT
         uses: actions/upload-artifact@v4
