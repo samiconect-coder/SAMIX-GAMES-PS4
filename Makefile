@@ -1,3 +1,4 @@
+
 TOOLCHAIN := $(OO_PS4_TOOLCHAIN)
 
 CCX := clang++
@@ -13,11 +14,21 @@ CXXFLAGS := --target=x86_64-pc-freebsd12-elf \
 	-isystem $(TOOLCHAIN)/include \
 	-isystem $(TOOLCHAIN)/include/c++/v1
 
+LIBS := -lc -lkernel -lc++ \
+	-lSceUserService \
+	-lSceVideoOut \
+	-lSceAudioOut \
+	-lScePad \
+	-lSceSysmodule \
+	-lSceFreeType \
+	-lSDL2 \
+	-lSDL2_image
+
 LDFLAGS := -m elf_x86_64 -pie \
 	--script $(TOOLCHAIN)/link.x \
 	--eh-frame-hdr \
 	-L$(TOOLCHAIN)/lib \
-	-lc -lkernel -lc++ \
+	$(LIBS) \
 	$(TOOLCHAIN)/lib/crt1.o
 
 all: eboot.bin
