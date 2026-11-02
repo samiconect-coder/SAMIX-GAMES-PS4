@@ -22,19 +22,28 @@ jobs:
 
       - name: Download OpenOrbis Toolchain
         run: |
-          export OO_PS4_TOOLCHAIN="$RUNNER_TEMP/OpenOrbisSDK"
-          mkdir -p "$OO_PS4_TOOLCHAIN"
-          curl -L \
+          mkdir -p "$RUNNER_TEMP/OpenOrbisSDK"
+          curl -fL \
             https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/toolchain-llvm-18.tar.gz \
             -o toolchain.tar.gz
           tar -xzf toolchain.tar.gz \
-            -C "$OO_PS4_TOOLCHAIN" \
-            bin/data bin/linux include lib scripts LICENSE link.x
+            -C "$RUNNER_TEMP/OpenOrbisSDK"
+
+          FSELF=$(find "$RUNNER_TEMP/OpenOrbisSDK" \
+            -type f -path '*/bin/linux/create-fself' -print -quit)
+
+          if [ -z "$FSELF" ]; then
+            echo "ERROR: create-fself was not found"
+            find "$RUNNER_TEMP/OpenOrbisSDK" -maxdepth 4 -type d
+            exit 1
+          fi
+
+          SDK_ROOT=$(dirname "$(dirname "$(dirname "$FSELF")")")
+          echo "OO_PS4_TOOLCHAIN=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "SDK found: $SDK_ROOT"
 
       - name: Build SAMIX GAMES
-        run: |
-          export OO_PS4_TOOLCHAIN="$RUNNER_TEMP/OpenOrbisSDK"
-          make
+        run: make
 
       - name: Upload EBOOT
         uses: actions/upload-artifact@v4
