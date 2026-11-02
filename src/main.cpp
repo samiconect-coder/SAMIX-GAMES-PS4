@@ -1,21 +1,18 @@
+
 #include <SDL2/SDL.h>
-#include <orbis/Sysmodule.h>
 #include <cstdio>
 
 const int W = 1920;
 const int H = 1080;
-
 int selected = 0;
 
 void drawTile(SDL_Renderer* r, int x, int y, bool active)
 {
     SDL_Rect tile = {x, y, 220, 220};
 
-    // خلفية المربع
     SDL_SetRenderDrawColor(r, 3, 15, 45, 255);
     SDL_RenderFillRect(r, &tile);
 
-    // إطار نيوني
     if (active)
         SDL_SetRenderDrawColor(r, 0, 230, 255, 255);
     else
@@ -40,17 +37,19 @@ int main()
 
     SDL_Window* window = SDL_CreateWindow(
         "SAMIX GAMES",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
         W, H, 0
     );
 
-    if (!window) return 1;
+    if (!window)
+        return 1;
 
-    SDL_Renderer* renderer =
-        SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    SDL_Surface* surface = SDL_GetWindowSurface(window);
+    SDL_Renderer* renderer = SDL_CreateSoftwareRenderer(surface);
 
-    if (!renderer) return 1;
+    if (!renderer)
+        return 1;
 
     SDL_Joystick* pad = nullptr;
 
@@ -75,19 +74,23 @@ int main()
                     case 0: // X
                         printf("Selected: %d\n", selected);
                         break;
+
                     case 1: // O
-                        running = false;
                         break;
-                    case 11: // UP
-                        selected = (selected + 12 - 6) % 12;
-                        break;
-                    case 12: // DOWN
+
+                    case 13: // UP
                         selected = (selected + 6) % 12;
                         break;
-                    case 13: // LEFT
+
+                    case 14: // DOWN
+                        selected = (selected + 6) % 12;
+                        break;
+
+                    case 15: // LEFT
                         selected = (selected + 11) % 12;
                         break;
-                    case 14: // RIGHT
+
+                    case 16: // RIGHT
                         selected = (selected + 1) % 12;
                         break;
                 }
@@ -106,10 +109,13 @@ int main()
         }
 
         SDL_RenderPresent(renderer);
+        SDL_UpdateWindowSurface(window);
         SDL_Delay(16);
     }
 
-    if (pad) SDL_JoystickClose(pad);
+    if (pad)
+        SDL_JoystickClose(pad);
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
