@@ -18,7 +18,7 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y make clang lld
+          sudo apt-get install -y make clang lld unzip
 
       - name: Download OpenOrbis Toolchain
         run: |
@@ -34,19 +34,51 @@ jobs:
 
           if [ -z "$FSELF" ]; then
             echo "ERROR: create-fself was not found"
-            find "$RUNNER_TEMP/OpenOrbisSDK" -maxdepth 4 -type d
             exit 1
           fi
 
           SDK_ROOT=$(dirname "$(dirname "$(dirname "$FSELF")")")
           echo "OO_PS4_TOOLCHAIN=$SDK_ROOT" >> "$GITHUB_ENV"
-          echo "SDK found: $SDK_ROOT"
+
+      - name: Download PkgTool
+        run: |
+          curl -fL \
+            https://github.com/maxton/LibOrbisPkg/releases/download/v0.2/PkgTool.Core-linux-x64-0.2.231.zip \
+            -o pkgtool.zip
+          unzip -o pkgtool.zip -d pkgtool
+          chmod +x pkgtool/PkgTool.Core
+
+      - name: Generate param.sfo
+        run: |
+          mkdir -p sce_sys
+          rm -f sce_sys/param.sfo
+
+          ./pkgtool/PkgTool.Core sfo_new sce_sys/param.sfo
+
+          ./pkgtool/PkgTool.Core sfo_setentry \
+            --value "SAMIX_DZPS4" --type string --maxsize 128 \
+            sce_sys/param.sfo TITLE
+
+          ./pkgtool/PkgTool.Core sfo_setentry \
+            --value "SAMI00027" --type string --maxsize 16 \
+            sce_sys/param.sfo TITLE_ID
+
+          ./pkgtool/PkgTool.Core sfo_setentry \
+            --value "00.27" --type string --maxsize 16 \
+            sce_sys/param.sfo APP_VER
+
+          ./pkgtool/PkgTool.Core sfo_listentries sce_sys/param.sfo
+
+          test -s sce_sys/param.sfo
 
       - name: Build SAMIX GAMES
         run: make
 
-      - name: Upload EBOOT
+      - name: Upload build files
         uses: actions/upload-artifact@v4
         with:
-          name: SAMIX-GAMES-EBOOT
-          path: eboot.bin
+          name: SAMIX-DZPS4-BUILD
+          path: |
+            eboot.bin
+            sce_sys/param.sfo
+            sce_sys/icon0.png
