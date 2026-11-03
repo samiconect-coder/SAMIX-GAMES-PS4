@@ -22,9 +22,11 @@ jobs:
       - name: Download OpenOrbis Toolchain
         run: |
           mkdir -p "$RUNNER_TEMP/OpenOrbisSDK"
+
           curl -fL \
             https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/toolchain-llvm-18.tar.gz \
             -o toolchain.tar.gz
+
           tar -xzf toolchain.tar.gz \
             -C "$RUNNER_TEMP/OpenOrbisSDK"
 
@@ -44,6 +46,7 @@ jobs:
           curl -fL \
             https://github.com/maxton/LibOrbisPkg/releases/download/v0.2/PkgTool.Core-linux-x64-0.2.231.zip \
             -o pkgtool.zip
+
           unzip -o pkgtool.zip -d pkgtool
           chmod +x pkgtool/PkgTool.Core
 
@@ -55,8 +58,11 @@ jobs:
       - name: Build create-gp4
         run: |
           git clone https://github.com/OpenOrbis/create-gp4.git "$RUNNER_TEMP/create-gp4"
+
           cd "$RUNNER_TEMP/create-gp4/cmd/create-gp4"
+
           go build -o create-gp4
+
           sudo install -m 755 create-gp4 /usr/local/bin/create-gp4
 
       - name: Generate param.sfo
@@ -103,6 +109,25 @@ jobs:
 
           test -s SAMIX_DZPS4.gp4
 
+      - name: Build SAMIX PKG
+        run: |
+          mkdir -p pkg_output
+
+          ./pkgtool/PkgTool.Core pkg_build \
+            SAMIX_DZPS4.gp4 pkg_output
+
+          PKG_FILE="pkg_output/IV0000-SAMI00027_00-SAMIXDZPS4000000.pkg"
+
+          if [ ! -s "$PKG_FILE" ]; then
+            echo "ERROR: PKG output was not created"
+            find pkg_output -maxdepth 2 -type f
+            exit 1
+          fi
+
+          cp "$PKG_FILE" SAMIX_DZPS4.pkg
+
+          test -s SAMIX_DZPS4.pkg
+
       - name: Upload build files
         uses: actions/upload-artifact@v4
         with:
@@ -112,3 +137,4 @@ jobs:
             sce_sys/param.sfo
             sce_sys/icon0.png
             SAMIX_DZPS4.gp4
+            SAMIX_DZPS4.pkg
