@@ -48,6 +48,18 @@ jobs:
           unzip -o pkgtool.zip -d pkgtool
           chmod +x pkgtool/PkgTool.Core
 
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build create-gp4
+        run: |
+          git clone https://github.com/OpenOrbis/create-gp4.git "$RUNNER_TEMP/create-gp4"
+          cd "$RUNNER_TEMP/create-gp4/cmd/create-gp4"
+          go build -o create-gp4
+          sudo install -m 755 create-gp4 /usr/local/bin/create-gp4
+
       - name: Generate param.sfo
         run: |
           mkdir -p sce_sys
@@ -68,7 +80,6 @@ jobs:
             sce_sys/param.sfo APP_VER
 
           ./pkgtool/PkgTool.Core sfo_listentries sce_sys/param.sfo
-
           test -s sce_sys/param.sfo
 
       - name: Build SAMIX GAMES
