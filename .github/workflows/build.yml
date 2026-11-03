@@ -90,6 +90,19 @@ jobs:
       - name: Build SAMIX GAMES
         run: make
 
+      - name: Generate SAMIX GP4
+        run: |
+          test -s eboot.bin
+          test -s sce_sys/param.sfo
+          test -s sce_sys/icon0.png
+
+          create-gp4 \
+            -out SAMIX_DZPS4.gp4 \
+            --content-id=IV0000-SAMI00027_00-SAMIXDZPS4000000 \
+            --files "eboot.bin sce_sys/param.sfo sce_sys/icon0.png"
+
+          test -s SAMIX_DZPS4.gp4
+
       - name: Upload build files
         uses: actions/upload-artifact@v4
         with:
@@ -98,3 +111,4 @@ jobs:
             eboot.bin
             sce_sys/param.sfo
             sce_sys/icon0.png
+            SAMIX_DZPS4.gp4
